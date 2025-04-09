@@ -1,16 +1,21 @@
 import mongoose, { Mongoose } from "mongoose";
 
-interface MongooseConnection {
-  conn: Mongoose | null;
-  promise: Promise<Mongoose> | null;
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose:
+    | {
+        conn: Mongoose | null;
+        promise: Promise<Mongoose> | null;
+      }
+    | undefined;
 }
 
 const MONGODB_URL = process.env.MONGO_DB_URL;
 
-let cached: MongooseConnection = (global as any).mongoose;
+let cached = global.mongoose;
 
 if (!cached) {
-  cached = (global as any).mongoose = {
+  cached = global.mongoose = {
     conn: null,
     promise: null,
   };
@@ -27,6 +32,6 @@ export const connectToDb = async () => {
       bufferCommands: false,
     });
 
-  cached.conn = await cached.promise; // ✅ fixed this line
+  cached.conn = await cached.promise;
   return cached.conn;
 };
