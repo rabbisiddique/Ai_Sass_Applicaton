@@ -23,7 +23,7 @@ declare type AddImageParams = {
     transformationType: string;
     width: number;
     height: number;
-    config: any;
+    config: Record<string, unknown>;
     secureURL: string;
     transformationURL: string;
     aspectRatio: string | undefined;
@@ -42,7 +42,7 @@ declare type UpdateImageParams = {
     transformationType: string;
     width: number;
     height: number;
-    config: any;
+    config: Record<string, unknown>;
     secureURL: string;
     transformationURL: string;
     aspectRatio: string | undefined;
@@ -126,7 +126,7 @@ declare type TransformationFormProps = {
 };
 
 declare type TransformedImageProps = {
-  image: any;
+  image: string;
   type: string;
   title: string;
   transformationConfig: Transformations | null;
@@ -134,3 +134,5 @@ declare type TransformedImageProps = {
   hasDownload?: boolean;
   setIsTransforming?: React.Dispatch<React.SetStateAction<boolean>>;
 };
+
+declare module "qs";
