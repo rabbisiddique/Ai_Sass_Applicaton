@@ -1,10 +1,10 @@
 import { createUser, deleteUser, updateUser } from "@/lib/actions/user.action";
-import type { ClerkClient } from "@clerk/nextjs/server";
-import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
+import { WebhookEvent, clerkClient } from "@clerk/nextjs/server";
+
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
 import { Webhook } from "svix";
-const clerk: ClerkClient = clerkClient;
+
 interface ClerkUserData {
   id: string;
   email_addresses?: { email_address: string }[];
@@ -60,7 +60,6 @@ export async function POST(req: Request) {
     );
   }
 
-  const { id } = evt.data;
   const eventType = evt.type;
 
   if (!["user.created", "user.updated", "user.deleted"].includes(eventType)) {
@@ -95,7 +94,7 @@ export async function POST(req: Request) {
     try {
       const newUser = await createUser(user);
       if (newUser) {
-        await clerk.users.updateUserMetadata(id, {
+        await clerkClient.users.updateUserMetadata(id, {
           publicMetadata: { userId: newUser._id },
         });
         return NextResponse.json({ message: "OK", user: newUser });
