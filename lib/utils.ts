@@ -1,32 +1,34 @@
-import qs from "qs";
+/* eslint-disable prefer-const */
 
 import { type ClassValue, clsx } from "clsx";
-
+import qs from "qs";
 import { twMerge } from "tailwind-merge";
 
 import { aspectRatioOptions } from "@/constants";
 
-// ========== CLASSNAMES MERGER ==========
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// ========== ERROR HANDLER ==========
-export const handleError = (error: unknown): never => {
+// ERROR HANDLER
+export const handleError = (error: unknown) => {
   if (error instanceof Error) {
+    // This is a native JavaScript error (e.g., TypeError, RangeError)
     console.error(error.message);
     throw new Error(`Error: ${error.message}`);
   } else if (typeof error === "string") {
+    // This is a string error message
     console.error(error);
     throw new Error(`Error: ${error}`);
   } else {
+    // This is an unknown type of error
     console.error(error);
     throw new Error(`Unknown error: ${JSON.stringify(error)}`);
   }
 };
 
-// ========== SHIMMER PLACEHOLDER ==========
-const shimmer = (w: number, h: number): string => `
+// PLACEHOLDER LOADER - while image is transforming
+const shimmer = (w: number, h: number) => `
 <svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
   <defs>
     <linearGradient id="g">
@@ -37,10 +39,10 @@ const shimmer = (w: number, h: number): string => `
   </defs>
   <rect width="${w}" height="${h}" fill="#7986AC" />
   <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
-  <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite" />
+  <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
 </svg>`;
 
-const toBase64 = (str: string): string =>
+const toBase64 = (str: string) =>
   typeof window === "undefined"
     ? Buffer.from(str).toString("base64")
     : window.btoa(str);
@@ -48,19 +50,14 @@ const toBase64 = (str: string): string =>
 export const dataUrl = `data:image/svg+xml;base64,${toBase64(
   shimmer(1000, 1000)
 )}`;
+// ==== End
 
-// ========== FORM URL QUERY ==========
-interface FormUrlQueryParams {
-  searchParams: URLSearchParams;
-  key: string;
-  value: string;
-}
-
+// FORM URL QUERY
 export const formUrlQuery = ({
   searchParams,
   key,
   value,
-}: FormUrlQueryParams): string => {
+}: FormUrlQueryParams) => {
   const params = { ...qs.parse(searchParams.toString()), [key]: value };
 
   return `${window.location.pathname}?${qs.stringify(params, {
@@ -68,22 +65,18 @@ export const formUrlQuery = ({
   })}`;
 };
 
-// ========== REMOVE KEYS FROM QUERY ==========
-interface RemoveUrlQueryParams {
-  searchParams: string;
-  keysToRemove: string[];
-}
-
+// REMOVE KEY FROM QUERY
 export function removeKeysFromQuery({
   searchParams,
   keysToRemove,
-}: RemoveUrlQueryParams): string {
+}: RemoveUrlQueryParams) {
   const currentUrl = qs.parse(searchParams);
 
   keysToRemove.forEach((key) => {
     delete currentUrl[key];
   });
 
+  // Remove null or undefined values
   Object.keys(currentUrl).forEach(
     (key) => currentUrl[key] == null && delete currentUrl[key]
   );
@@ -91,23 +84,21 @@ export function removeKeysFromQuery({
   return `${window.location.pathname}?${qs.stringify(currentUrl)}`;
 }
 
-// ========== DEBOUNCE ==========
-export const debounce = <T extends (...args: any[]) => void>(
+// DEBOUNCE
+export const debounce = <T extends (...args: unknown[]) => void>(
   func: T,
   delay: number
-): ((...args: Parameters<T>) => void) => {
+) => {
   let timeoutId: NodeJS.Timeout | null = null;
-
   return (...args: Parameters<T>) => {
     if (timeoutId) clearTimeout(timeoutId);
     timeoutId = setTimeout(() => func(...args), delay);
   };
 };
 
-// ========== GET IMAGE SIZE ==========
+// GE IMAGE SIZE
 export type AspectRatioKey = keyof typeof aspectRatioOptions;
-
-interface ImageData {
+interface Image {
   aspectRatio?: string;
   width?: number;
   height?: number;
@@ -115,7 +106,7 @@ interface ImageData {
 
 export const getImageSize = (
   type: string,
-  image: ImageData,
+  image: Image,
   dimension: "width" | "height"
 ): number => {
   if (type === "fill") {
@@ -127,8 +118,8 @@ export const getImageSize = (
   return image?.[dimension] || 1000;
 };
 
-// ========== DOWNLOAD IMAGE ==========
-export const download = (url: string, filename: string): void => {
+// DOWNLOAD IMAGE
+export const download = (url: string, filename: string) => {
   if (!url) {
     throw new Error("Resource URL not provided! You need to provide one");
   }
@@ -140,45 +131,42 @@ export const download = (url: string, filename: string): void => {
       const a = document.createElement("a");
       a.href = blobURL;
 
-      if (filename && filename.length) {
-        a.download = `${filename.replace(/\s+/g, "_")}.png`;
-      }
-
+      if (filename && filename.length)
+        a.download = `${filename.replace(" ", "_")}.png`;
       document.body.appendChild(a);
       a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(blobURL);
     })
     .catch((error) => console.log({ error }));
 };
 
-// ========== DEEP MERGE OBJECTS ==========
-type PlainObject = Record<string, unknown>;
+// DEEP MERGE OBJECTS
+export const deepMergeObjects = (
+  obj1: Record<string, unknown>,
+  obj2: Record<string, unknown>
+): Record<string, unknown> => {
+  if (obj2 === null || obj2 === undefined) {
+    return obj1;
+  }
 
-const isObject = (value: unknown): value is PlainObject =>
-  typeof value === "object" && value !== null && !Array.isArray(value);
+  let output = { ...obj2 };
 
-export function deepMergeObjects<T extends PlainObject>(
-  obj1: T,
-  obj2: Partial<T>
-): T {
-  const output = { ...obj1 }; // start from obj1
-
-  for (const key in obj2) {
-    if (Object.prototype.hasOwnProperty.call(obj2, key)) {
-      const val1 = obj1[key];
-      const val2 = obj2[key];
-
-      if (isObject(val1) && isObject(val2)) {
+  for (let key in obj1) {
+    if (Object.prototype.hasOwnProperty.call(obj1, key)) {
+      if (
+        obj1[key] &&
+        typeof obj1[key] === "object" &&
+        obj2[key] &&
+        typeof obj2[key] === "object"
+      ) {
         output[key] = deepMergeObjects(
-          val1 as PlainObject,
-          val2 as PlainObject
-        ) as T[typeof key];
-      } else if (val2 !== undefined) {
-        output[key] = val2 as T[typeof key];
+          obj1[key] as Record<string, unknown>,
+          obj2[key] as Record<string, unknown>
+        );
+      } else {
+        output[key] = obj1[key];
       }
     }
   }
 
   return output;
-}
+};
