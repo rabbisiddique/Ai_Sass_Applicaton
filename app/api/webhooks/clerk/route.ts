@@ -1,5 +1,5 @@
 import { createUser, deleteUser, updateUser } from "@/lib/actions/user.action";
-import { WebhookEvent, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient, WebhookEvent } from "@clerk/nextjs/server";
 
 import { headers } from "next/headers";
 import { NextResponse } from "next/server";
@@ -15,6 +15,7 @@ interface ClerkUserData {
 }
 
 export async function POST(req: Request) {
+  const client = await clerkClient();
   const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET;
 
   if (!WEBHOOK_SECRET) {
@@ -94,7 +95,7 @@ export async function POST(req: Request) {
     try {
       const newUser = await createUser(user);
       if (newUser) {
-        await clerkClient.users.updateUserMetadata(id, {
+        await client.users.updateUserMetadata(id, {
           publicMetadata: { userId: newUser._id },
         });
         return NextResponse.json({ message: "OK", user: newUser });
