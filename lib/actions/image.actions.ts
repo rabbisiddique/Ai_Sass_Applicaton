@@ -141,6 +141,7 @@ export async function getAllImages({
     handleError(error);
   }
 }
+
 export async function getUserImages({
   limit = 9,
   page = 1,
