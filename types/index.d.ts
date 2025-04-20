@@ -136,3 +136,10 @@ declare type TransformedImageProps = {
 };
 
 declare module "qs";
+
+interface ImageState {
+  aspectRatio: string;
+  width: number;
+  height: number;
+  [key: string]: unknown; // Optional: for additional properties
+}
