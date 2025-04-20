@@ -3,9 +3,7 @@ import { navLinks } from "@/constants";
 import { getAllImages } from "@/lib/actions/image.actions";
 import Image from "next/image";
 import Link from "next/link";
-
 type PageProps = {
-  params: Record<string, string>;
   searchParams?: { [key: string]: string | string[] | undefined };
 };
 
