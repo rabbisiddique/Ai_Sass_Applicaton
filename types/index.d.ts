@@ -126,8 +126,8 @@ declare type TransformationFormProps = {
 };
 
 declare type TransformedImageProps = {
-  image: string;
-  type: string;
+  image: IImage | null; // Use IImage or ImageState, allow null
+  type: TransformationTypeKey; // Restrict to valid transformation types
   title: string;
   transformationConfig: Transformations | null;
   isTransforming: boolean;

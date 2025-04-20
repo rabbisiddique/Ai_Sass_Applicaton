@@ -23,7 +23,7 @@ import { updateCredits } from "@/lib/actions/user.action";
 import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils";
 import { getCldImageUrl } from "next-cloudinary";
 import { useRouter } from "next/navigation";
-import { startTransition, useEffect, useState, useTransition } from "react";
+import { startTransition, useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { CustomField } from "./CustomField";
 import { InsufficientCreditsModal } from "./InsufficentCreditsModal";
@@ -54,7 +54,6 @@ const TransformationForm = ({
   const [isTransforming, setIsTransforming] = useState(false);
   const [transformationConfig, setTransformationConfig] = useState(config);
 
-  const [isPending, setIsPending] = useTransition();
   const router = useRouter();
   const initialValues =
     data && action === "Update"
@@ -85,10 +84,10 @@ const TransformationForm = ({
         title: values.title,
         publicId: values.publicId,
         transformationType: type,
-        width: image?.width,
-        height: image?.height,
-        config: transformationConfig,
-        secureURL: image?.secureURL,
+        width: image?.width ?? 0, // Provide default if undefined
+        height: image?.height ?? 0, // Provide default if undefined
+        config: transformationConfig ?? {}, // Ensure config is an object
+        secureURL: image?.secureURL ?? "", // Provide default if undefined
         transformationURL: transformationUrl,
         aspectRatio: values.aspectRatio,
         prompt: values.prompt,
@@ -104,7 +103,7 @@ const TransformationForm = ({
 
           if (newImage) {
             form.reset();
-            setImage(data);
+            setImage(null); // Reset to null or initial state
             router.push(`/transformations/${newImage._id}`);
           }
         } catch (error) {
@@ -151,17 +150,25 @@ const TransformationForm = ({
   const onInputChangeHandler = (
     fieldName: string,
     value: string,
-    type: string,
+    type: TransformationTypeKey,
     onChangeField: (value: string) => void
   ) => {
     debounce(() => {
-      setNewTransformation((prevState: any) => ({
-        ...prevState,
-        [type]: {
-          ...prevState?.[type],
-          [fieldName === "prompt" ? "prompt" : "to"]: value,
-        },
-      }));
+      setNewTransformation((prevState: Transformations | null) => {
+        const safeState = prevState ?? {};
+
+        if (type !== "remove" && type !== "recolor") {
+          return safeState;
+        }
+
+        return {
+          ...safeState,
+          [type]: {
+            ...safeState[type],
+            [fieldName === "prompt" ? "prompt" : "to"]: value,
+          },
+        };
+      });
     }, 1000)();
     return onChangeField(value);
   };

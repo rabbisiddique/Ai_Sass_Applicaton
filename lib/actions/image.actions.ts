@@ -1,13 +1,17 @@
 "use server";
 
 import { v2 as cloudinary } from "cloudinary";
+import { Document, Query } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Image from "../database/models/image.model";
 import User from "../database/models/user.model";
 import { connectToDb } from "../database/mongoose";
 import { handleError } from "../utils";
-const populateUser = (query: any) =>
+interface CloudinaryResource {
+  public_id: string;
+}
+const populateUser = <T extends Document>(query: Query<T, T>) =>
   query.populate({
     path: "author",
     model: User,
@@ -101,11 +105,12 @@ export async function getAllImages({
       expression += ` AND ${searchQuery}`;
     }
 
-    const { resources } = await cloudinary.search
-      .expression(expression)
-      .execute();
+    const { resources }: { resources: CloudinaryResource[] } =
+      await cloudinary.search.expression(expression).execute();
 
-    const resourceIds = resources.map((resource: any) => resource.public_id);
+    const resourceIds = resources.map(
+      (resource: CloudinaryResource) => resource.public_id
+    );
 
     let query = {};
 

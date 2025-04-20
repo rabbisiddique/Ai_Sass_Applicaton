@@ -1,16 +1,29 @@
 "use client";
 import { useToast } from "@/hooks/use-toast";
 import { dataUrl, getImageSize } from "@/lib/utils";
-import { CldImage, CldUploadWidget } from "next-cloudinary";
+import {
+  CldImage,
+  CldUploadWidget,
+  CloudinaryUploadWidgetResults,
+} from "next-cloudinary";
 import { PlaceholderValue } from "next/dist/shared/lib/get-img-props";
 import Image from "next/image";
+
+interface ImageState {
+  publicId?: string;
+  width?: number;
+  height?: number;
+  secureURL?: string;
+}
+
 type MediaUploaderProps = {
   onValueChange: (value: string) => void;
-  setImage: React.Dispatch<any>;
+  setImage: React.Dispatch<React.SetStateAction<ImageState | null>>;
   publicId: string;
-  image: null;
+  image: ImageState | null;
   type: string;
 };
+
 const MediaUploader = ({
   onValueChange,
   setImage,
@@ -20,15 +33,26 @@ const MediaUploader = ({
 }: MediaUploaderProps) => {
   const { toast } = useToast();
 
-  const onUploadSuccessHandler = (result: any) => {
-    setImage((prevState: any) => ({
+  const onUploadSuccessHandler = (result: CloudinaryUploadWidgetResults) => {
+    const info = result.info as {
+      public_id?: string;
+      width?: number;
+      height?: number;
+      secure_url?: string;
+    };
+
+    setImage((prevState: ImageState | null) => ({
       ...prevState,
-      publicId: result?.info?.public_id,
-      width: result?.info?.width,
-      height: result?.info?.height,
-      secureURL: result?.info?.secure_url,
+      publicId: info?.public_id,
+      width: info?.width,
+      height: info?.height,
+      secureURL: info?.secure_url,
     }));
-    onValueChange(result?.info?.public_id);
+
+    if (info?.public_id) {
+      onValueChange(info.public_id);
+    }
+
     toast({
       title: "Image upload successfully",
       description: "1 credit was deducted from your account",
@@ -36,6 +60,7 @@ const MediaUploader = ({
       className: "success-toast",
     });
   };
+
   const onUploadErrorHandler = () => {
     toast({
       title: "Something went wrong while uploading",
@@ -44,9 +69,9 @@ const MediaUploader = ({
       className: "error-toast",
     });
   };
+
   return (
     <CldUploadWidget
-      // cloudName="dq6npwvaj"
       uploadPreset="ai_image"
       options={{ multiple: false, resourceType: "image" }}
       onSuccess={onUploadSuccessHandler}
@@ -58,8 +83,8 @@ const MediaUploader = ({
           {publicId ? (
             <div className="cursor-pointer overflow-hidden rounded-[10px]">
               <CldImage
-                width={getImageSize(type, image!, "width")}
-                height={getImageSize(type, image!, "width")}
+                width={getImageSize(type, image ?? {}, "width")}
+                height={getImageSize(type, image ?? {}, "height")}
                 src={publicId}
                 alt="image"
                 sizes={"(max-width:767px) 100vw, 50vw"}
