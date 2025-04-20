@@ -4,12 +4,17 @@ import { v2 as cloudinary } from "cloudinary";
 import { Document, Query } from "mongoose";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import Image from "../database/models/image.model";
+import Image, { IImage } from "../database/models/image.model";
 import User from "../database/models/user.model";
 import { connectToDb } from "../database/mongoose";
 import { handleError } from "../utils";
 interface CloudinaryResource {
   public_id: string;
+}
+interface GetAllImagesResult {
+  data: IImage[];
+  totalPage: number;
+  savedImages: number;
 }
 const populateUser = <T extends Document>(query: Query<T, T>) =>
   query.populate({
@@ -88,7 +93,7 @@ export async function getAllImages({
   limit?: number;
   page: number;
   searchQuery?: string;
-}) {
+}): Promise<GetAllImagesResult | undefined> {
   try {
     await connectToDb();
 
@@ -139,6 +144,7 @@ export async function getAllImages({
     };
   } catch (error) {
     handleError(error);
+    return undefined;
   }
 }
 export async function getUserImages({

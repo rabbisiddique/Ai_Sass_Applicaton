@@ -112,7 +112,7 @@ declare type RemoveUrlQueryParams = {
 };
 
 declare type SearchParamProps = {
-  params?: Record<string, string>;
+  params?: Record<string, string>; // Optional for flexibility
   searchParams: { [key: string]: string | string[] | undefined };
 };
 

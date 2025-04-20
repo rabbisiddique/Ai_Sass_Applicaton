@@ -3,14 +3,17 @@ import { navLinks } from "@/constants";
 import { getAllImages } from "@/lib/actions/image.actions";
 import Image from "next/image";
 import Link from "next/link";
-declare type HomePageProps = {
+
+interface HomePageProps {
   searchParams: { [key: string]: string | string[] | undefined };
-};
+}
+
 const Home = async ({ searchParams }: HomePageProps) => {
   const page = Number(searchParams?.page) || 1;
   const searchQuery = (searchParams?.query as string) || "";
 
   const images = await getAllImages({ page, searchQuery });
+
   return (
     <>
       <section className="home">
@@ -35,7 +38,7 @@ const Home = async ({ searchParams }: HomePageProps) => {
       <section className="sm:mt-12">
         <Collection
           hasSearch={true}
-          images={images?.data}
+          images={images?.data || []}
           totalPages={images?.totalPage}
           page={page}
         />
