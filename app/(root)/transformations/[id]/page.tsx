@@ -89,6 +89,7 @@ const ImageDetails: NextPage<{ params: Promise<Params> }> = async ({
             isTransforming={false}
             transformationConfig={image.config}
             hasDownload={true}
+            setIsTransforming={() => {}} // <--- Add this
           />
         </div>
 

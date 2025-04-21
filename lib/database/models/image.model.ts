@@ -1,6 +1,7 @@
+// image.model.ts
 import { model, models, Schema } from "mongoose";
 
-export interface IImage extends Document {
+export interface IImage {
   _id?: string;
   title: string;
   transformationType: string;
@@ -13,11 +14,11 @@ export interface IImage extends Document {
   aspectRatio?: string;
   color?: string;
   prompt?: string;
-  author: {
+  author?: {
     _id: string;
     firstName: string;
     lastName: string;
-  };
+  }; // Make author optional
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -34,7 +35,7 @@ const ImageSchema = new Schema({
   aspectRatio: { type: String },
   color: { type: String },
   prompt: { type: String },
-  author: { type: Schema.Types.ObjectId, ref: "User" },
+  author: { type: Schema.Types.ObjectId, ref: "User", required: false }, // Make optional
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });

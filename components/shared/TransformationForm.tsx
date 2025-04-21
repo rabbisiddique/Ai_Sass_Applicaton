@@ -93,24 +93,24 @@ const TransformationForm = ({
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
-    if (data || image) {
+    if (image && image.publicId) {
       const transformationUrl = getCldImageUrl({
-        width: image?.width,
-        height: image?.height,
-        src: image?.publicId,
+        width: image.width,
+        height: image.height,
+        src: image.publicId, // Now TypeScript knows publicId is a string
         ...transformationConfig,
       });
 
       const imageData = {
         title: values.title,
-        publicId: image?.publicId ?? "",
+        publicId: image.publicId,
         transformationType: type,
-        width: image?.width ?? 0,
-        height: image?.height ?? 0,
+        width: image.width ?? 0,
+        height: image.height ?? 0,
         config: transformationConfig
           ? JSON.stringify(transformationConfig)
           : "",
-        secureURL: image?.secureURL ?? "",
+        secureURL: image.secureURL ?? "",
         transformationURL: transformationUrl,
         aspectRatio: values.aspectRatio,
         prompt: values.prompt,
@@ -140,7 +140,7 @@ const TransformationForm = ({
           const updatedImage = await updateImage({
             image: {
               ...imageData,
-              _id: data!._id,
+              _id: data?._id ?? "",
             },
             userId,
             path: `/transformations/${data!._id}`,
@@ -325,12 +325,17 @@ const TransformationForm = ({
                 publicId={field.value ?? ""}
                 image={image}
                 type={type}
+                author={{
+                  _id: userId,
+                  firstName: "",
+                  lastName: "",
+                }}
               />
             )}
           />
 
           <TransformedImageForm
-            image={image?.secureURL ?? ""}
+            image={image}
             type={type}
             title={form.getValues().title}
             isTransforming={isTransforming}

@@ -125,12 +125,12 @@ declare type TransformationFormProps = {
   config?: Transformations | null;
 };
 
-declare type TransformedImageProps = {
-  image: string;
-  type: string;
+interface TransformedImageProps {
+  image: IImage | null; // <--- update this line
   title: string;
+  type: TransformationTypeKey;
   transformationConfig: Transformations | null;
   isTransforming: boolean;
+  setIsTransforming: React.Dispatch<React.SetStateAction<boolean>>;
   hasDownload?: boolean;
-  setIsTransforming?: React.Dispatch<React.SetStateAction<boolean>>;
-};
+}

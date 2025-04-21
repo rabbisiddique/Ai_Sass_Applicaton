@@ -1,5 +1,6 @@
-"use client";
+// MediaUploader.tsx
 import { useToast } from "@/hooks/use-toast";
+import { IImage } from "@/lib/database/models/image.model"; // Adjust the import path
 import { dataUrl, getImageSize } from "@/lib/utils";
 import {
   CldImage,
@@ -9,19 +10,13 @@ import {
 import { PlaceholderValue } from "next/dist/shared/lib/get-img-props";
 import Image from "next/image";
 
-interface ImageState {
-  publicId?: string;
-  width?: number;
-  height?: number;
-  secureURL?: string;
-}
-
 type MediaUploaderProps = {
   onValueChange: (value: string) => void;
-  setImage: React.Dispatch<React.SetStateAction<ImageState | null>>;
+  setImage: React.Dispatch<React.SetStateAction<IImage | null>>;
   publicId: string;
-  image: ImageState | null;
+  image: IImage | null;
   type: string;
+  author: { _id: string; firstName: string; lastName: string };
 };
 
 const MediaUploader = ({
@@ -41,13 +36,16 @@ const MediaUploader = ({
       secure_url?: string;
     };
 
-    setImage((prevState: ImageState | null) => ({
-      ...prevState,
-      publicId: info?.public_id,
-      width: info?.width,
-      height: info?.height,
-      secureURL: info?.secure_url,
-    }));
+    const newImage: IImage = {
+      publicId: info.public_id ?? "",
+      width: info.width ?? 0,
+      height: info.height ?? 0,
+      secureURL: info.secure_url ?? "",
+      title: image?.title ?? "Untitled",
+      transformationType: image?.transformationType ?? type,
+    };
+
+    setImage(newImage);
 
     if (info?.public_id) {
       onValueChange(info.public_id);
