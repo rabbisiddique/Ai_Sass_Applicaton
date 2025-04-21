@@ -1,12 +1,23 @@
 import { Collection } from "@/components/shared/Collection";
 import { navLinks } from "@/constants";
 import { getAllImages } from "@/lib/actions/image.actions";
+import { NextPage } from "next";
 import Image from "next/image";
 import Link from "next/link";
+// Define the SearchParams interface for the resolved searchParams object
+interface SearchParams {
+  page?: string;
+  query?: string;
+}
 
-const Home = async ({ searchParams }: { searchParams: SearchParams }) => {
-  const page = Number(searchParams?.page ?? 1); // Default to 1 if not present
-  const searchQuery = (searchParams?.query as string) || "";
+// Use NextPage type to define the page component with correct props
+const Home: NextPage<{ searchParams: Promise<SearchParams> }> = async ({
+  searchParams,
+}) => {
+  // Await the searchParams to resolve the Promise
+  const resolvedParams = await searchParams;
+  const page = Number(resolvedParams?.page ?? 1); // Default to 1 if not present
+  const searchQuery = (resolvedParams?.query as string) || "";
 
   const images = await getAllImages({ page, searchQuery });
 
