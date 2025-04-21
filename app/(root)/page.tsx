@@ -3,15 +3,13 @@ import { navLinks } from "@/constants";
 import { getAllImages } from "@/lib/actions/image.actions";
 import Image from "next/image";
 import Link from "next/link";
-
 type PageProps = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  searchParams?: { [key: string]: string | string[] | undefined };
 };
 
-const Home = async ({ searchParams }: PageProps) => {
-  const resolvedSearchParams = await searchParams; // Await the Promise
-  const page = Number(resolvedSearchParams.page) || 1;
-  const searchQuery = (resolvedSearchParams.query as string) || "";
+const Home = async ({ searchParams = {} }: PageProps) => {
+  const page = Number(searchParams.page) || 1;
+  const searchQuery = (searchParams.query as string) || "";
 
   const images = await getAllImages({ page, searchQuery });
 
