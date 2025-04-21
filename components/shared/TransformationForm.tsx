@@ -23,16 +23,16 @@ import {
   transformationTypes,
 } from "@/constants";
 import { addImage, updateImage } from "@/lib/actions/image.actions";
-import { updateCredits } from "@/lib/actions/user.actions";
+import { updateCredits } from "@/lib/actions/user.action";
 import { IImage } from "@/lib/database/models/image.model";
 import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils";
 import { getCldImageUrl } from "next-cloudinary";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { CustomField } from "./CustomField";
-import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
+import { InsufficientCreditsModal } from "./InsufficentCreditsModal";
 import MediaUploader from "./MediaUploader";
-import TransformedImage from "./TransformedImage";
+import TransformedImageForm from "./TransformedImageForm";
 
 export const formSchema = z.object({
   title: z.string(),
@@ -167,17 +167,27 @@ const TransformationForm = ({
   const onInputChangeHandler = (
     fieldName: string,
     value: string,
-    type: string,
+    type: TransformationTypeKey, // Use TransformationTypeKey instead of string
     onChangeField: (value: string) => void
   ) => {
     debounce(() => {
-      setNewTransformation((prevState: any) => ({
-        ...prevState,
-        [type]: {
-          ...prevState?.[type],
-          [fieldName === "prompt" ? "prompt" : "to"]: value,
-        },
-      }));
+      setNewTransformation((prevState: Transformations | null) => {
+        // Initialize default state if prevState is null
+        const newState = prevState ?? {};
+
+        // Only update for "remove" or "recolor" types
+        if (type !== "remove" && type !== "recolor") {
+          return newState;
+        }
+
+        return {
+          ...newState,
+          [type]: {
+            ...newState[type],
+            [fieldName === "prompt" ? "prompt" : "to"]: value,
+          },
+        };
+      });
     }, 1000)();
 
     return onChangeField(value);
@@ -309,7 +319,7 @@ const TransformationForm = ({
             )}
           />
 
-          <TransformedImage
+          <TransformedImageForm
             image={image}
             type={type}
             title={form.getValues().title}
