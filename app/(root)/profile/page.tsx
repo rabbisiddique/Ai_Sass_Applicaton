@@ -1,3 +1,4 @@
+import { type NextPage } from "next"; // Import NextPage for proper typing
 import Image from "next/image";
 import { redirect } from "next/navigation";
 
@@ -7,8 +8,18 @@ import { getUserImages } from "@/lib/actions/image.actions";
 import { getUserById } from "@/lib/actions/user.action";
 import { auth } from "@clerk/nextjs/server";
 
-const Profile = async ({ searchParams }: { searchParams: SearchParams }) => {
-  const page = Number(searchParams?.page) ?? 1;
+// Define the SearchParams interface for the resolved searchParams
+interface SearchParams {
+  page?: string;
+  query?: string;
+}
+
+// Use NextPage to type the page component correctly
+const Profile: NextPage<{ searchParams: Promise<SearchParams> }> = async ({
+  searchParams,
+}) => {
+  const resolvedParams = await searchParams; // Resolve the Promise
+  const page = Number(resolvedParams?.page ?? 1); // Default to 1 if not present
   const { userId } = await auth();
 
   if (!userId) redirect("/sign-in");
