@@ -8,7 +8,7 @@ import { getUserById } from "@/lib/actions/user.action";
 import { auth } from "@clerk/nextjs/server";
 
 const Profile = async ({ searchParams }: SearchParamProps) => {
-  const page = Number(searchParams?.page) || 1;
+  const page = Number(searchParams?.page) ?? 1;
   const { userId } = await auth();
 
   if (!userId) redirect("/sign-in");
