@@ -23,7 +23,7 @@ declare type AddImageParams = {
     transformationType: string;
     width: number;
     height: number;
-    config: Record<string, unknown>;
+    config: string;
     secureURL: string;
     transformationURL: string;
     aspectRatio: string | undefined;
@@ -42,7 +42,7 @@ declare type UpdateImageParams = {
     transformationType: string;
     width: number;
     height: number;
-    config: Record<string, unknown>;
+    config: string;
     secureURL: string;
     transformationURL: string;
     aspectRatio: string | undefined;
@@ -111,7 +111,8 @@ declare type RemoveUrlQueryParams = {
   keysToRemove: string[];
 };
 
-type SearchParamProps = {
+declare type SearchParamProps = {
+  params: { id: string; type: TransformationTypeKey };
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
@@ -125,20 +126,11 @@ declare type TransformationFormProps = {
 };
 
 declare type TransformedImageProps = {
-  image: IImage | null; // Use IImage or ImageState, allow null
-  type: TransformationTypeKey; // Restrict to valid transformation types
+  image: string;
+  type: string;
   title: string;
   transformationConfig: Transformations | null;
   isTransforming: boolean;
   hasDownload?: boolean;
   setIsTransforming?: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
-declare module "qs";
-
-interface ImageState {
-  aspectRatio: string;
-  width: number;
-  height: number;
-  [key: string]: unknown; // Optional: for additional properties
-}

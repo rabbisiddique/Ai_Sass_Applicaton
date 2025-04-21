@@ -4,7 +4,6 @@ import { CldImage } from "next-cloudinary";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect } from "react";
 
 import {
   Pagination,
@@ -17,47 +16,25 @@ import { IImage } from "@/lib/database/models/image.model";
 import { formUrlQuery } from "@/lib/utils";
 
 import { Button } from "../ui/button";
-import Search from "./Search";
+import { Search } from "./Search";
 
 export const Collection = ({
   hasSearch = false,
   images,
   totalPages = 1,
   page,
-  searchQuery = "",
 }: {
   images: IImage[];
   totalPages?: number;
   page: number;
   hasSearch?: boolean;
-  searchQuery?: string;
 }) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const currentPage = Number(searchParams.get("page")) || page;
 
-  // Prefetch next/previous pages
-  useEffect(() => {
-    if (currentPage < totalPages) {
-      const nextUrl = formUrlQuery({
-        searchParams: searchParams.toString(),
-        key: "page",
-        value: currentPage + 1,
-      });
-      router.prefetch(nextUrl);
-    }
-    if (currentPage > 1) {
-      const prevUrl = formUrlQuery({
-        searchParams: searchParams.toString(),
-        key: "page",
-        value: currentPage - 1,
-      });
-      router.prefetch(prevUrl);
-    }
-  }, [currentPage, totalPages, searchParams, router]);
-
+  // PAGINATION HANDLER
   const onPageChange = (action: string) => {
-    const pageValue = action === "next" ? currentPage + 1 : currentPage - 1;
+    const pageValue = action === "next" ? Number(page) + 1 : Number(page) - 1;
 
     const newUrl = formUrlQuery({
       searchParams: searchParams.toString(),
@@ -72,13 +49,13 @@ export const Collection = ({
     <>
       <div className="collection-heading">
         <h2 className="h2-bold text-dark-600">Recent Edits</h2>
-        {hasSearch && <Search initialQuery={searchQuery} />}
+        {hasSearch && <Search />}
       </div>
 
       {images.length > 0 ? (
         <ul className="collection-list">
           {images.map((image) => (
-            <Card image={image} key={image._id} />
+            <Card image={image} key={image?._id} />
           ))}
         </ul>
       ) : (
@@ -91,7 +68,7 @@ export const Collection = ({
         <Pagination className="mt-10">
           <PaginationContent className="flex w-full">
             <Button
-              disabled={currentPage <= 1}
+              disabled={Number(page) <= 1}
               className="collection-btn"
               onClick={() => onPageChange("prev")}
             >
@@ -99,13 +76,13 @@ export const Collection = ({
             </Button>
 
             <p className="flex-center p-16-medium w-fit flex-1">
-              {currentPage} / {totalPages}
+              {page} / {totalPages}
             </p>
 
             <Button
               className="button w-32 bg-purple-gradient bg-cover text-white"
               onClick={() => onPageChange("next")}
-              disabled={currentPage >= totalPages}
+              disabled={Number(page) >= totalPages}
             >
               <PaginationNext className="hover:bg-transparent hover:text-white" />
             </Button>

@@ -4,19 +4,9 @@ import { getAllImages } from "@/lib/actions/image.actions";
 import Image from "next/image";
 import Link from "next/link";
 
-// Define PageProps with searchParams as a Promise
-type PageProps = {
-  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-};
-
-// Home component as an async function to handle searchParams
-const Home = async ({ searchParams }: PageProps) => {
-  // Await searchParams to resolve the Promise
-  const resolvedSearchParams = await searchParams;
-
-  // Use default empty object if searchParams is undefined
-  const page = Number(resolvedSearchParams.page) || 1;
-  const searchQuery = (resolvedSearchParams.query as string) || "";
+const Home = async ({ searchParams }: SearchParamProps) => {
+  const page = Number(searchParams?.page) || 1;
+  const searchQuery = (searchParams?.query as string) || "";
 
   const images = await getAllImages({ page, searchQuery });
 
