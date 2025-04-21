@@ -5,8 +5,12 @@ import TransformationForm from "@/components/shared/TransformationForm";
 import { transformationTypes } from "@/constants";
 import { getImageByIdI } from "@/lib/actions/image.actions";
 import { getUserById } from "@/lib/actions/user.action";
+import { PageParams, SearchParams, TransformationTypeKey } from "@/types";
 import { auth } from "@clerk/nextjs/server";
-
+type PageProps = {
+  searchParams?: SearchParams;
+  params: PageParams;
+};
 const Page = async ({ params: { id } }: PageProps) => {
   const { userId } = await auth();
 

@@ -110,10 +110,10 @@ declare type RemoveUrlQueryParams = {
   searchParams: string;
   keysToRemove: string[];
 };
-
-type PageProps = {
-  searchParams?: Record<string, string | string[] | undefined>;
+export type PageParams = {
+  id: string;
 };
+export type SearchParams = Record<string, string | string[] | undefined>;
 
 declare type TransformationFormProps = {
   action: "Add" | "Update";
