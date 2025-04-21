@@ -1,13 +1,10 @@
 import { Collection } from "@/components/shared/Collection";
 import { navLinks } from "@/constants";
 import { getAllImages } from "@/lib/actions/image.actions";
-import { SearchParams } from "@/types";
 import Image from "next/image";
 import Link from "next/link";
-type PageProps = {
-  searchParams?: SearchParams;
-};
-const Home = async ({ searchParams }: PageProps) => {
+
+const Home = async ({ searchParams }: { searchParams: SearchParams }) => {
   const page = Number(searchParams?.page ?? 1); // Default to 1 if not present
   const searchQuery = (searchParams?.query as string) || "";
 

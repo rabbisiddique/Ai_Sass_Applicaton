@@ -5,12 +5,9 @@ import { Collection } from "@/components/shared/Collection";
 import Header from "@/components/shared/Header";
 import { getUserImages } from "@/lib/actions/image.actions";
 import { getUserById } from "@/lib/actions/user.action";
-import { SearchParams } from "@/types";
 import { auth } from "@clerk/nextjs/server";
-type PageProps = {
-  searchParams?: SearchParams;
-};
-const Profile = async ({ searchParams }: PageProps) => {
+
+const Profile = async ({ searchParams }: { searchParams: SearchParams }) => {
   const page = Number(searchParams?.page) ?? 1;
   const { userId } = await auth();
 

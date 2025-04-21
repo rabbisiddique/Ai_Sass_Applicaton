@@ -90,8 +90,10 @@ export async function getAllImages({
   searchQuery?: string;
 }) {
   try {
+    // Establish DB connection
     await connectToDb();
 
+    // Cloudinary configuration
     cloudinary.config({
       cloud_name: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME,
       api_key: process.env.CLOUDINARY_API_KEY,
@@ -99,38 +101,40 @@ export async function getAllImages({
       secure: true,
     });
 
+    // Construct the search expression for Cloudinary
     let expression = "folder=imaginify";
-
     if (searchQuery) {
+      // Optionally sanitize or encode searchQuery to prevent special characters issues
       expression += ` AND ${searchQuery}`;
     }
 
+    // Fetch resources from Cloudinary
     const { resources }: { resources: CloudinaryResource[] } =
       await cloudinary.search.expression(expression).execute();
 
+    // Map resources to their public IDs
     const resourceIds = resources.map(
       (resource: CloudinaryResource) => resource.public_id
     );
 
+    // Construct query based on the search query (only if provided)
     let query = {};
-
     if (searchQuery) {
-      query = {
-        publicId: {
-          $in: resourceIds,
-        },
-      };
+      query = { publicId: { $in: resourceIds } };
     }
 
+    // Calculate skip amount based on page and limit
     const skipAmount = (Number(page) - 1) * limit;
 
+    // Fetch images from the database
     const images = await populateUser(Image.find(query))
       .sort({ updatedAt: -1 })
       .skip(skipAmount)
       .limit(limit);
 
+    // Get total count of images and saved images
     const totalImages = await Image.find(query).countDocuments();
-    const savedImages = await Image.find().countDocuments();
+    const savedImages = await Image.countDocuments(); // Get the total number of images
 
     return {
       data: JSON.parse(JSON.stringify(images)),
@@ -138,7 +142,10 @@ export async function getAllImages({
       savedImages,
     };
   } catch (error) {
-    handleError(error);
+    // Log or handle the error properly
+    console.error("Error fetching images:", error);
+    // Optionally, rethrow or handle the error as needed
+    throw new Error("Failed to fetch images.");
   }
 }
 

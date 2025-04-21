@@ -4,15 +4,11 @@ import TransformedImageForm from "@/components/shared/TransformedImageForm";
 import { Button } from "@/components/ui/button";
 import { getImageByIdI } from "@/lib/actions/image.actions";
 import { getImageSize } from "@/lib/utils";
-import { PageParams, SearchParams } from "@/types";
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
-type PageProps = {
-  searchParams?: SearchParams;
-  params: PageParams;
-};
-const ImageDetails = async ({ params: { id } }: PageProps) => {
+
+const ImageDetails = async ({ params: { id } }: { params: { id: string } }) => {
   const { userId } = await auth();
 
   const image = await getImageByIdI(id);
@@ -93,8 +89,9 @@ const ImageDetails = async ({ params: { id } }: PageProps) => {
                 Update Image
               </Link>
             </Button>
-
             <DeleteConfirmation imageId={image._id} />
+
+            {/* <DeleteConfirmation imageId={image._id} /> */}
           </div>
         )}
       </section>
