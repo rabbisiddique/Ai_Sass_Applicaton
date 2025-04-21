@@ -111,8 +111,8 @@ declare type RemoveUrlQueryParams = {
   keysToRemove: string[];
 };
 
-type SearchParamProps = {
-  searchParams?: { [key: string]: string | string[] | undefined };
+type PageProps = {
+  searchParams?: Record<string, string | string[] | undefined>;
 };
 
 declare type TransformationFormProps = {

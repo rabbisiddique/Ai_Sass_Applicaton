@@ -8,7 +8,7 @@ import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
 
-const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
+const ImageDetails = async ({ params: { id } }: PageProps) => {
   const { userId } = await auth();
 
   const image = await getImageByIdI(id);
