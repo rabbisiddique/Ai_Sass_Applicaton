@@ -5,10 +5,20 @@ import { Button } from "@/components/ui/button";
 import { getImageByIdI } from "@/lib/actions/image.actions";
 import { getImageSize } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
+import { type NextPage } from "next"; // Import NextPage for proper typing
 import Image from "next/image";
 import Link from "next/link";
 
-const ImageDetails = async ({ params: { id } }: { params: { id: string } }) => {
+// Define the Params interface for the resolved params
+interface Params {
+  id: string;
+}
+
+// Use NextPage to type the page component correctly
+const ImageDetails: NextPage<{ params: Promise<Params> }> = async ({
+  params,
+}) => {
+  const { id } = await params; // Resolve the Promise
   const { userId } = await auth();
 
   const image = await getImageByIdI(id);
@@ -20,37 +30,37 @@ const ImageDetails = async ({ params: { id } }: { params: { id: string } }) => {
       <section className="mt-5 flex flex-wrap gap-4">
         <div className="p-14-medium md:p-16-medium flex gap-2">
           <p className="text-dark-600">Transformation:</p>
-          <p className=" capitalize text-purple-400">
+          <p className="capitalize text-purple-400">
             {image.transformationType}
           </p>
         </div>
 
         {image.prompt && (
           <>
-            <p className="hidden text-dark-400/50 md:block">&#x25CF;</p>
-            <div className="p-14-medium md:p-16-medium flex gap-2 ">
+            <p className="hidden text-dark-400/50 md:block">●</p>
+            <div className="p-14-medium md:p-16-medium flex gap-2">
               <p className="text-dark-600">Prompt:</p>
-              <p className=" capitalize text-purple-400">{image.prompt}</p>
+              <p className="capitalize text-purple-400">{image.prompt}</p>
             </div>
           </>
         )}
 
         {image.color && (
           <>
-            <p className="hidden text-dark-400/50 md:block">&#x25CF;</p>
+            <p className="hidden text-dark-400/50 md:block">●</p>
             <div className="p-14-medium md:p-16-medium flex gap-2">
               <p className="text-dark-600">Color:</p>
-              <p className=" capitalize text-purple-400">{image.color}</p>
+              <p className="capitalize text-purple-400">{image.color}</p>
             </div>
           </>
         )}
 
         {image.aspectRatio && (
           <>
-            <p className="hidden text-dark-400/50 md:block">&#x25CF;</p>
+            <p className="hidden text-dark-400/50 md:block">●</p>
             <div className="p-14-medium md:p-16-medium flex gap-2">
               <p className="text-dark-600">Aspect Ratio:</p>
-              <p className=" capitalize text-purple-400">{image.aspectRatio}</p>
+              <p className="capitalize text-purple-400">{image.aspectRatio}</p>
             </div>
           </>
         )}
@@ -90,8 +100,6 @@ const ImageDetails = async ({ params: { id } }: { params: { id: string } }) => {
               </Link>
             </Button>
             <DeleteConfirmation imageId={image._id} />
-
-            {/* <DeleteConfirmation imageId={image._id} /> */}
           </div>
         )}
       </section>
