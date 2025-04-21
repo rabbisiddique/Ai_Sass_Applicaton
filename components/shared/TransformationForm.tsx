@@ -30,7 +30,7 @@ import { getCldImageUrl } from "next-cloudinary";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { CustomField } from "./CustomField";
-import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
+import { InsufficientCreditsModal } from "./InsufficentCreditsModal";
 import MediaUploader from "./MediaUploader";
 import TransformedImageForm from "./TransformedImageForm";
 
