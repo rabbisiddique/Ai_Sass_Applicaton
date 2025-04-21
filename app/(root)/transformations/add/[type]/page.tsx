@@ -3,14 +3,22 @@ import TransformationForm from "@/components/shared/TransformationForm";
 import { transformationTypes } from "@/constants";
 import { getUserById } from "@/lib/actions/user.action";
 import { auth } from "@clerk/nextjs/server";
+import { type NextPage } from "next"; // Import NextPage for proper typing
 import { redirect } from "next/navigation";
 
-// Define the correct types for the page props
-type PageProps = {
-  params: { type: TransformationTypeKey }; // type should be a specific key like 'restore' | 'removeBackground' etc.
-};
+// Define the TransformationTypeKey type (assuming it's defined in constants)
+type TransformationTypeKey = keyof typeof transformationTypes; // e.g., 'restore' | 'removeBackground'
 
-const AddTransformationTypePage = async ({ params: { type } }: PageProps) => {
+// Define the Params interface for the resolved params
+interface Params {
+  type: TransformationTypeKey;
+}
+
+// Use NextPage to type the page component correctly
+const AddTransformationTypePage: NextPage<{
+  params: Promise<Params>;
+}> = async ({ params }) => {
+  const { type } = await params; // Resolve the Promise
   const { userId } = await auth();
 
   // Now `type` is guaranteed to be a valid key from `TransformationTypeKey`
