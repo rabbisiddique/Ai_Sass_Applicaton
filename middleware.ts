@@ -1,17 +1,22 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
-// export default authMiddleware({
-//   publicRoutes: ["/", "/api/webhooks/clerk", "/api/webhooks/stripe"],
-// });
-export default clerkMiddleware({
-  publicRoutes: ["/", "/api/webhooks/clerk", "/api/webhooks/stripe"],
+const PUBLIC_ROUTES = ["/", "/api/webhooks/clerk", "/api/webhooks/stripe"];
+
+export default clerkMiddleware(async (auth, req) => {
+  const { pathname } = req.nextUrl;
+
+  // Allow public routes
+  if (PUBLIC_ROUTES.includes(pathname)) return;
+
+  // Await auth() to get the resolved ClerkMiddlewareAuthObject
+  const authObject = await auth();
+
+  // Protect all other routes
+  if (!authObject.userId) {
+    return authObject.redirectToSignIn({ returnBackUrl: req.nextUrl.href });
+  }
 });
 
 export const config = {
-  matcher: [
-    // Skip Next.js internals and all static files, unless found in search params
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
-    "/(api|trpc)(.*)",
-  ],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)", "/(api|trpc)(.*)"],
 };
