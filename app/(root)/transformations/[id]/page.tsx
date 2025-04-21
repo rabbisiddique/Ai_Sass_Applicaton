@@ -14,7 +14,7 @@ interface SearchParamProps {
 }
 
 const ImageDetails = async ({ params }: SearchParamProps) => {
-  const { id } = await params; // Await params to get the id
+  const { id } = await params; // Await params to get id
   const { userId } = await auth();
 
   const image = await getImageByIdI(id);
@@ -29,7 +29,7 @@ const ImageDetails = async ({ params }: SearchParamProps) => {
             {image.transformationType}
           </p>
         </div>
-        {image.prompt && (
+        {image && (
           <>
             <p className="hidden text-dark-400/50 md:block">●</p>
             <div className="p-14-medium md:p-16-medium flex gap-2">

@@ -6,16 +6,16 @@ import { auth } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 
 interface SearchParamProps {
-  params: Promise<{ type: TransformationTypeKey }>;
+  params: Promise<{ type: string }>;
   searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
 const AddTransformationTypePage = async ({ params }: SearchParamProps) => {
-  const { type } = await params;
-  const transformation = transformationTypes[type];
+  const { type } = await params; // Await params to access type
+  const transformation = transformationTypes[type as TransformationTypeKey];
 
   if (!transformation) {
-    notFound();
+    notFound(); // Renders a 404 page for invalid types
   }
 
   const { userId } = await auth();
