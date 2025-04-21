@@ -126,7 +126,7 @@ declare type TransformationFormProps = {
 };
 
 interface TransformedImageProps {
-  image: IImage | null; // <--- update this line
+  image: IImage | null;
   title: string;
   type: TransformationTypeKey;
   transformationConfig: Transformations | null;
