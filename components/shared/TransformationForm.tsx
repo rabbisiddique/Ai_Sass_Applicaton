@@ -19,11 +19,10 @@ import { z } from "zod";
 import { Input } from "../ui/input";
 
 import { addImage, updateImage } from "@/lib/actions/image.actions";
-import { updateCredits } from "@/lib/actions/user.action";
-import { AspectRatioKey, debounce, deepMergeObjects } from "@/lib/utils";
+import { AspectRatioKey } from "@/lib/utils";
 import { getCldImageUrl } from "next-cloudinary";
 import { useRouter } from "next/navigation";
-import { startTransition, useEffect, useState } from "react";
+import { useState } from "react";
 import { Button } from "../ui/button";
 import { CustomField } from "./CustomField";
 import { InsufficientCreditsModal } from "./InsufficentCreditsModal";
@@ -37,6 +36,20 @@ export const formSchema = z.object({
   prompt: z.string().optional(),
   publicId: z.string(),
 });
+interface IImage {
+  _id?: string;
+  title: string; // Required
+  publicId: string; // Required
+  transformationType?: string;
+  width?: number;
+  height?: number;
+  config?: Transformations;
+  secureURL?: string;
+  transformationURL?: string;
+  aspectRatio?: string;
+  prompt?: string;
+  color?: string;
+}
 
 const TransformationForm = ({
   action,
@@ -46,7 +59,7 @@ const TransformationForm = ({
   creditBalance,
   config = null,
 }: TransformationFormProps) => {
-  const [image, setImage] = useState(data);
+  const [image, setImage] = useState<IImage | null>(data);
   const [newTransformation, setNewTransformation] =
     useState<Transformations | null>(null);
   const transformationType = transformationTypes[type];
@@ -65,12 +78,12 @@ const TransformationForm = ({
           publicId: data?.publicId,
         }
       : defaultValues;
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialValues,
   });
 
-  // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
     if (data || image) {
@@ -80,19 +93,21 @@ const TransformationForm = ({
         src: image?.publicId,
         ...transformationConfig,
       });
+
       const imageData = {
         title: values.title,
         publicId: values.publicId,
-        transformationType: type,
-        width: image?.width ?? 0, // Provide default if undefined
-        height: image?.height ?? 0, // Provide default if undefined
-        config: transformationConfig ?? {}, // Ensure config is an object
-        secureURL: image?.secureURL ?? "", // Provide default if undefined
+        transformationType: type as string, // Type assertion if transformationType expects string
+        width: image?.width ?? 0,
+        height: image?.height ?? 0,
+        config: JSON.stringify(transformationConfig ?? {}), // Ensure string
+        secureURL: image?.secureURL ?? "",
         transformationURL: transformationUrl,
         aspectRatio: values.aspectRatio,
         prompt: values.prompt,
         color: values.color,
       };
+
       if (action === "Add") {
         try {
           const newImage = await addImage({
@@ -103,14 +118,21 @@ const TransformationForm = ({
 
           if (newImage) {
             form.reset();
-            setImage(null); // Reset to null or initial state
+            setImage(null);
             router.push(`/transformations/${newImage._id}`);
           }
         } catch (error) {
           console.log(error);
         }
       }
+
       if (action === "Update") {
+        if (!data?._id) {
+          console.error("Cannot update image: _id is missing");
+          setIsSubmitting(false);
+          return;
+        }
+
         try {
           const updatedImage = await updateImage({
             image: {
@@ -131,65 +153,33 @@ const TransformationForm = ({
     }
     setIsSubmitting(false);
   }
-
   const onSelectFieldHandler = (
     value: string,
     onChangeField: (value: string) => void
   ) => {
     const imageSize = aspectRatioOptions[value as AspectRatioKey];
-    setImage((prevState: any) => ({
-      ...prevState,
-      aspectRatio: imageSize.aspectRatio,
-      width: imageSize.width,
-      height: imageSize.height,
-    }));
+    setImage((prevState: IImage | null) => {
+      if (!prevState) {
+        // Handle null case by providing defaults for required fields
+        return {
+          title: "", // Default value
+          publicId: "", // Default value
+          aspectRatio: imageSize.aspectRatio,
+          width: imageSize.width,
+          height: imageSize.height,
+        };
+      }
+      // Update existing IImage
+      return {
+        ...prevState,
+        aspectRatio: imageSize.aspectRatio,
+        width: imageSize.width,
+        height: imageSize.height,
+      };
+    });
     setNewTransformation(transformationType.config);
     return onChangeField(value);
   };
-
-  const onInputChangeHandler = (
-    fieldName: string,
-    value: string,
-    type: TransformationTypeKey,
-    onChangeField: (value: string) => void
-  ) => {
-    debounce(() => {
-      setNewTransformation((prevState: Transformations | null) => {
-        const safeState = prevState ?? {};
-
-        if (type !== "remove" && type !== "recolor") {
-          return safeState;
-        }
-
-        return {
-          ...safeState,
-          [type]: {
-            ...safeState[type],
-            [fieldName === "prompt" ? "prompt" : "to"]: value,
-          },
-        };
-      });
-    }, 1000)();
-    return onChangeField(value);
-  };
-
-  const onTransformHandler = async () => {
-    setIsTransforming(true);
-    setTransformationConfig(
-      deepMergeObjects(newTransformation!, transformationConfig!)
-    );
-    setNewTransformation(null);
-    startTransition(async () => {
-      await updateCredits(userId, creditFee);
-    });
-  };
-
-  useEffect(() => {
-    if ((image && type === "restore") || type === "removeBackground") {
-      setNewTransformation(transformationType.config);
-    }
-  }, [image, transformationType.config, type]);
-
   return (
     <div>
       <Form {...form}>
