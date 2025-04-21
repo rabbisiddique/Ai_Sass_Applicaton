@@ -3,12 +3,18 @@ import { redirect } from "next/navigation";
 
 import { Collection } from "@/components/shared/Collection";
 import Header from "@/components/shared/Header";
+import { getUserImages } from "@/lib/actions/image.actions";
 import { getUserById } from "@/lib/actions/user.action";
 import { auth } from "@clerk/nextjs/server";
-import { getUserImages } from "@/lib/actions/image.actions";
+
+// Define the correct type for searchParams
+type SearchParamProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
 const Profile = async ({ searchParams }: SearchParamProps) => {
-  const page = Number(searchParams?.page) || 1;
+  const resolvedSearchParams = await searchParams; // Await the Promise
+  const page = Number(resolvedSearchParams?.page) || 1;
   const { userId } = await auth();
 
   if (!userId) redirect("/sign-in");

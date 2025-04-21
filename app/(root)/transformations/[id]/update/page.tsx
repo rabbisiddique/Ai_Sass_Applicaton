@@ -6,6 +6,10 @@ import { transformationTypes } from "@/constants";
 import { getImageByIdI } from "@/lib/actions/image.actions";
 import { getUserById } from "@/lib/actions/user.action";
 import { auth } from "@clerk/nextjs/server";
+type SearchParamProps = {
+  params: { id: string }; // Dynamic route parameters
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // Query parameters
+};
 
 const Page = async ({ params: { id } }: SearchParamProps) => {
   const { userId } = await auth();

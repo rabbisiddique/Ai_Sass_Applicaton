@@ -111,10 +111,11 @@ declare type RemoveUrlQueryParams = {
   keysToRemove: string[];
 };
 
-type SearchParams = {
+type SearchParamProps = {
   page?: string;
   query?: string;
 };
+
 declare type TransformationFormProps = {
   action: "Add" | "Update";
   userId: string;

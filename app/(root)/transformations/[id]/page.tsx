@@ -7,10 +7,13 @@ import { getImageSize } from "@/lib/utils";
 import { auth } from "@clerk/nextjs/server";
 import Image from "next/image";
 import Link from "next/link";
+type SearchParamProps = {
+  params: { id: string }; // Dynamic route parameters
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>; // Query parameters
+};
 
 const ImageDetails = async ({ params: { id } }: SearchParamProps) => {
   const { userId } = await auth();
-
   const image = await getImageByIdI(id);
 
   return (
