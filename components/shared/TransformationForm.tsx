@@ -30,10 +30,11 @@ import { getCldImageUrl } from "next-cloudinary";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { CustomField } from "./CustomField";
-import { InsufficientCreditsModal } from "./InsufficentCreditsModal";
+import { InsufficientCreditsModal } from "./InsufficientCreditsModal";
 import MediaUploader from "./MediaUploader";
 import TransformedImageForm from "./TransformedImageForm";
 
+// Define the form schema
 export const formSchema = z.object({
   title: z.string(),
   aspectRatio: z.string().optional(),
@@ -41,6 +42,16 @@ export const formSchema = z.object({
   prompt: z.string().optional(),
   publicId: z.string(),
 });
+
+// Define props type
+interface TransformationFormProps {
+  action: "Add" | "Update";
+  data?: IImage | null;
+  userId: string;
+  type: TransformationTypeKey;
+  creditBalance: number;
+  config?: Transformations | null;
+}
 
 const TransformationForm = ({
   action,
@@ -51,7 +62,7 @@ const TransformationForm = ({
   config = null,
 }: TransformationFormProps) => {
   const transformationType = transformationTypes[type];
-  const [image, setImage] = useState(data);
+  const [image, setImage] = useState<IImage | null>(data);
   const [newTransformation, setNewTransformation] =
     useState<Transformations | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -60,6 +71,7 @@ const TransformationForm = ({
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
 
+  // Initialize form with default values
   const initialValues =
     data && action === "Update"
       ? {
@@ -71,13 +83,13 @@ const TransformationForm = ({
         }
       : defaultValues;
 
-  // 1. Define your form.
+  // Define form
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: initialValues,
   });
 
-  // 2. Define a submit handler.
+  // Submit handler
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
 
@@ -91,12 +103,14 @@ const TransformationForm = ({
 
       const imageData = {
         title: values.title,
-        publicId: image?.publicId,
+        publicId: image?.publicId ?? "",
         transformationType: type,
-        width: image?.width,
-        height: image?.height,
-        config: transformationConfig,
-        secureURL: image?.secureURL,
+        width: image?.width ?? 0,
+        height: image?.height ?? 0,
+        config: transformationConfig
+          ? JSON.stringify(transformationConfig)
+          : "",
+        secureURL: image?.secureURL ?? "",
         transformationURL: transformationUrl,
         aspectRatio: values.aspectRatio,
         prompt: values.prompt,
@@ -113,11 +127,11 @@ const TransformationForm = ({
 
           if (newImage) {
             form.reset();
-            setImage(data);
+            setImage(null);
             router.push(`/transformations/${newImage._id}`);
           }
         } catch (error) {
-          console.log(error);
+          console.error("Error adding image:", error);
         }
       }
 
@@ -126,17 +140,17 @@ const TransformationForm = ({
           const updatedImage = await updateImage({
             image: {
               ...imageData,
-              _id: data._id,
+              _id: data!._id,
             },
             userId,
-            path: `/transformations/${data._id}`,
+            path: `/transformations/${data!._id}`,
           });
 
           if (updatedImage) {
             router.push(`/transformations/${updatedImage._id}`);
           }
         } catch (error) {
-          console.log(error);
+          console.error("Error updating image:", error);
         }
       }
     }
@@ -144,6 +158,7 @@ const TransformationForm = ({
     setIsSubmitting(false);
   }
 
+  // Handle aspect ratio selection
   const onSelectFieldHandler = (
     value: string,
     onChangeField: (value: string) => void
@@ -151,7 +166,7 @@ const TransformationForm = ({
     const imageSize = aspectRatioOptions[value as AspectRatioKey];
     setImage((prevState: IImage | null) => {
       if (!prevState) {
-        return null; // Keep state as null if no valid image
+        return null;
       }
       return {
         ...prevState,
@@ -164,22 +179,19 @@ const TransformationForm = ({
     return onChangeField(value);
   };
 
+  // Handle input changes for prompt or color
   const onInputChangeHandler = (
     fieldName: string,
     value: string,
-    type: TransformationTypeKey, // Use TransformationTypeKey instead of string
+    type: TransformationTypeKey,
     onChangeField: (value: string) => void
   ) => {
     debounce(() => {
       setNewTransformation((prevState: Transformations | null) => {
-        // Initialize default state if prevState is null
         const newState = prevState ?? {};
-
-        // Only update for "remove" or "recolor" types
         if (type !== "remove" && type !== "recolor") {
           return newState;
         }
-
         return {
           ...newState,
           [type]: {
@@ -189,24 +201,22 @@ const TransformationForm = ({
         };
       });
     }, 1000)();
-
     return onChangeField(value);
   };
 
+  // Handle transformation application
   const onTransformHandler = async () => {
     setIsTransforming(true);
-
     setTransformationConfig(
       deepMergeObjects(newTransformation!, transformationConfig!)
     );
-
     setNewTransformation(null);
-
     startTransition(async () => {
       await updateCredits(userId, creditFee);
     });
   };
 
+  // Set transformation config for restore or removeBackground
   useEffect(() => {
     if (image && (type === "restore" || type === "removeBackground")) {
       setNewTransformation(transformationType.config);
@@ -312,7 +322,7 @@ const TransformationForm = ({
               <MediaUploader
                 onValueChange={field.onChange}
                 setImage={setImage}
-                publicId={field.value}
+                publicId={field.value ?? ""}
                 image={image}
                 type={type}
               />
@@ -320,7 +330,7 @@ const TransformationForm = ({
           />
 
           <TransformedImageForm
-            image={image}
+            image={image?.secureURL ?? ""}
             type={type}
             title={form.getValues().title}
             isTransforming={isTransforming}
